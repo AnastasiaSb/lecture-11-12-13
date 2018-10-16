@@ -1,66 +1,56 @@
 <?php
-
 namespace App\Http\Controllers\Front;
-
-use App\Shop\Products\Product;
-use App\Shop\Products\Repositories\Interfaces\ProductRepositoryInterface;
 use App\Http\Controllers\Controller;
-use App\Shop\Products\Transformations\ProductTransformable;
-
+use App\Shop\ProductImage\Repositories\ProductImagesRepository;
+use App\Shop\Products\Product2;
+use App\Shop\Products\Repositories\ProductRepositoryInterface;
+use App\Shop\Products\Requests\ProductRequest;
 class ProductController extends Controller
 {
-    use ProductTransformable;
-
     /**
      * @var ProductRepositoryInterface
      */
-    private $productRepo;
-
+    private $productRepository;
+    /**
+     * @var ProductImagesRepository
+     */
+    private $productImageRepository;
     /**
      * ProductController constructor.
      * @param ProductRepositoryInterface $productRepository
      */
-    public function __construct(ProductRepositoryInterface $productRepository)
+    public function __construct(ProductRepositoryInterface $productRepository, ProductImagesRepository $imagesRepository)
     {
-        $this->productRepo = $productRepository;
+        $this->productRepository = $productRepository;
+        $this->productImageRepository = $imagesRepository;
     }
-
+    /**
+     * @param $id
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function show($slug)
+    {
+        /**
+         * @var Product2 $product
+         */
+        $product = $this->productRepository->findOneByOrFail('slug', $slug);
+        $images = $this->productImageRepository->getImagesForProduct($product->getId());
+        return view('front.products.product', compact('product', 'images'));
+    }
     /**
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-    /*public function search()
+    public function create()
     {
-        if (request()->has('q') && request()->input('q') != '') {
-            $list = $this->productRepo->searchProduct(request()->input('q'));
-        } else {
-            $list = $this->productRepo->listProducts();
-        }
-
-        $products = $list->where('status', 1)->map(function (Product $item) {
-            return $this->transformProduct($item);
-        });
-
-        return view('front.products.product-search', [
-            'products' => $this->productRepo->paginateArrayResults($products->all(), 10)
-        ]);
-    }*/
-
+        return view('front.products.product-add');
+    }
     /**
-     * Get the product
+     * Addd product to database
      *
-     * @param string $slug
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     * @param ProductRequest $request
      */
-    public function show(string $slug)
+    public function store(ProductRequest $request)
     {
-        $product = $this->productRepo->findProductBySlug(['slug' => $slug]);
-        $images = $product->images();
-        $category = $product->categories()->first();
-
-        return view('front.products.product', compact(
-            'product',
-            'images',
-            'category'
-        ));
+        dd('Hi! Your data is correct');
     }
 }
